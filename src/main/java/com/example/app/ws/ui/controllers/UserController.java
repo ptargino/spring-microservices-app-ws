@@ -1,19 +1,18 @@
 package com.example.app.ws.ui.controllers;
 
+import com.example.app.ws.exceptions.UserServiceException;
 import com.example.app.ws.ui.model.request.UpdateUserDetailsRequestModel;
 import com.example.app.ws.ui.model.request.UserDetailsRequestModel;
 import com.example.app.ws.ui.model.response.UserRest;
-
-import org.springframework.data.domain.PageRequest;
+import com.example.app.ws.userservice.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("users") //  http://localhost:8080/users
@@ -21,8 +20,13 @@ public class UserController {
 
     Map<String, UserRest> users;
 
+    @Autowired
+    UserService userService;
+
     @GetMapping(path = "/{userId}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<UserRest> getUser(@PathVariable String userId) {
+        if(true)
+            throw new UserServiceException("A USE is thrown");
         if (users.containsKey(userId))
             return new ResponseEntity<>(users.get(userId), HttpStatus.OK);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -38,16 +42,7 @@ public class UserController {
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<UserRest> createUser(@Valid @RequestBody UserDetailsRequestModel userDetailsRequestModel) {
-        UserRest userRest = new UserRest();
-        userRest.setFirstName(userDetailsRequestModel.getFirstName());
-        userRest.setLastName(userDetailsRequestModel.getLastName());
-        userRest.setEmail(userDetailsRequestModel.getEmail());
-        userRest.setPassword(userDetailsRequestModel.getPassword());
-        String userId = UUID.randomUUID().toString();
-        userRest.setUserId(userId);
-        if (this.users == null) this.users = new HashMap<>();
-        users.put(userId, userRest);
-        return new ResponseEntity<UserRest>(userRest, HttpStatus.OK);
+        return new ResponseEntity<UserRest>(this.userService.createUser(userDetailsRequestModel), HttpStatus.OK);
     }
 
 
